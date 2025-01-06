@@ -54,7 +54,6 @@ This solution ensures:
 ```plaintext
 ├── Pricing_Optimization.Rmd      # Main analysis and code
 ├── Pricing_Optimization.html     # Rendered report
-├── data.csv                      # Synthetic dataset
 ├── README.md                     # Project overview
 ```
 
