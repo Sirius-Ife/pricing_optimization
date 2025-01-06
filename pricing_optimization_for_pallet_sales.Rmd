@@ -1,0 +1,164 @@
+---
+title: "Pricing Optimization for PalletTrader"
+author: "Ife Abe"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+# Introduction
+PalletTrader is an online marketplace for buyers and sellers of pallets. This case study demonstrates pricing optimization to maximize profit for PalletTrader while considering production capacity, demand, and other constraints.
+
+# Objective
+To determine the optimal pricing strategy for two types of pallets (Recycled and New) sold on PalletTrader while maximizing profit.
+
+---
+
+# Step 1: Generate Data
+
+First, we simulate a dataset for PalletTrader's pricing optimization.
+
+```{r setup, include=FALSE}
+# Load necessary library
+library(lpSolve)
+set.seed(123)  # For reproducibility
+```
+
+```{r generate-data}
+# Simulated profit per pallet (in dollars)
+profit_per_pallet <- c(
+  recycled = sample(8:12, 1),  # Profit for recycled pallets
+  new = sample(13:18, 1)       # Profit for new pallets
+)
+
+# Constraints: Supply availability and buyer demand
+supply_capacity <- 1000  # Total pallets available (Recycled + New)
+min_recycled_demand <- 300   # Minimum demand for recycled pallets
+min_new_demand <- 400        # Minimum demand for new pallets
+
+# Display generated data
+data <- data.frame(
+  Type = c("Recycled", "New"),
+  Profit = profit_per_pallet,
+  MinDemand = c(min_recycled_demand, min_new_demand)
+)
+data
+
+```
+
+---
+
+# Step 2: Define the Pricing Optimization Problem
+
+We define the objective function and constraints for the linear programming problem.
+
+```{r define-problem}
+# Objective function: Profit per pallet
+objective <- profit_per_pallet
+
+# Constraint matrix
+constraints <- matrix(c(
+  1, 1,  # Total supply constraint (Recycled + New <= 1000)
+  1, 0,  # Minimum recycled demand (Recycled >= 300)
+  0, 1   # Minimum new demand (New >= 400)
+), nrow = 3, byrow = TRUE)
+
+# Right-hand side of constraints
+rhs <- c(supply_capacity, min_recycled_demand, min_new_demand)
+
+# Directions of constraints
+directions <- c("<=", ">=", ">=")
+```
+
+---
+
+# Step 3: Solve the Optimization Problem
+
+We use the `lpSolve` package to solve the linear programming problem.
+
+```{r solve-optimization}
+# Solve the linear programming problem
+solution <- lp(
+  direction = "max",       # Maximize profit
+  objective.in = objective,
+  const.mat = constraints,
+  const.dir = directions,
+  const.rhs = rhs
+)
+
+# Display the results
+if (solution$status == 0) {
+  cat("**Optimal Solution Found:**\n")
+  cat("Recycled pallets to supply:", solution$solution[1], "\n")
+  cat("New pallets to supply:", solution$solution[2], "\n")
+  cat("Maximum Profit:", solution$objval, "\n")
+} else {
+  cat("No Optimal Solution Found")
+}
+```
+
+---
+
+# Step 4: Visualize the Results
+
+We visualize the optimized solution to communicate insights effectively.
+
+```{r visualize-results, echo=FALSE}
+# Data for visualization
+results <- data.frame(
+  Type = c("Recycled", "New"),
+  Quantity = solution$solution
+)
+
+# Plot
+library(ggplot2)
+ggplot(results, aes(x = Type, y = Quantity, fill = Type)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  labs(
+    title = "Optimal Supply Quantities",
+    x = "Pallet Type",
+    y = "Quantity",
+    fill = "Pallet Type"
+  ) +
+  theme_minimal()
+```
+
+---
+
+# Conclusion
+
+After analyzing the data and running the optimization model, here are the key findings:
+
+1. **How Many Pallets to Sell:**
+   - **300 recycled pallets** should be sold.
+   - **700 new pallets** should be sold.
+
+   This combination ensures PalletTrader meets the demand for both types of pallets while aligning with its operational constraints and sustainability goals.
+
+2. **Profit Maximization:**
+   - By selling this optimal mix of pallets, PalletTrader can achieve a **maximum profit of $15,600**. 
+   - This means that after accounting for costs, the company will earn the highest possible return by following this strategy.
+
+3. **Why This Solution Works:**
+   - Selling 300 recycled pallets ensures that PalletTrader meets the minimum demand for recycled pallets while promoting sustainability.
+   - Selling 700 new pallets meets the higher demand for new pallets, which are priced higher and contribute significantly to revenue.
+   - The combination balances customer demand, supply limits, and pricing, maximizing profits while ensuring the business remains competitive.
+
+---
+
+### **What Does This Mean for PalletTrader?**
+
+- **Balanced Strategy:** This plan balances **profitability** and **sustainability**, which is key for PalletTrader as an online marketplace.
+- **Meeting Customer Needs:** Customers demanding both recycled and new pallets are satisfied, ensuring business continuity and loyalty.
+- **Sustainability Goals:** By selling recycled pallets, PalletTrader maintains its commitment to environmentally friendly practices.
+- **Financial Growth:** This strategy ensures that the company maximizes its earnings, helping it reinvest in the platform and grow its market share.
+
+---
+
+### **Takeaway for Decision-Makers**
+By following this pricing strategy, PalletTrader will meet customer demand, support sustainability efforts, and achieve the best financial outcome. It’s a win-win solution for both the company and its stakeholders!
+
+---
